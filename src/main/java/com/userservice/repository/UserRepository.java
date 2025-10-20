@@ -1,6 +1,9 @@
 package com.userservice.repository;
 
+import com.userservice.entity.CardInfo;
 import com.userservice.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,8 +21,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> getUserById(@Param("id") Long id);
 
-    @Query(value = "SELECT * FROM users", nativeQuery = true)
-    List<User> getAllUsers();
+    @Query(value = "SELECT * FROM users", countQuery = "SELECT COUNT(*) FROM users", nativeQuery = true)
+    Page<User> getAllUsers(Pageable pageable);
 
     Optional<User> getUserByEmail(String email);
 

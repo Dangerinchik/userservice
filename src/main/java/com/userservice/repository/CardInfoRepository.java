@@ -2,6 +2,8 @@ package com.userservice.repository;
 
 import com.userservice.entity.CardInfo;
 import com.userservice.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,8 +21,8 @@ public interface CardInfoRepository extends JpaRepository<CardInfo, Long> {
     @Query(value = "SELECT * FROM card_info WHERE id = :id", nativeQuery = true)
     Optional<CardInfo> getCardInfoById(@Param("id") Long id);
 
-    @Query("SELECT c FROM CardInfo c")
-    List<CardInfo> getAllCardsInfo();
+    @Query(value = "SELECT c FROM CardInfo c", countQuery = "SELECT COUNT(c) FROM CardInfo c")
+    Page<CardInfo> getAllCardsInfo(Pageable pageable);
 
     @Modifying
     @Query("UPDATE CardInfo c SET c.number = :#{#cardInfo.number}," +
