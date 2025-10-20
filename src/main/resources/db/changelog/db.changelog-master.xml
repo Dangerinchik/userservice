@@ -1,0 +1,3 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog">
+        <include file="V1.0/20251020_init_tables.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>
