@@ -40,4 +40,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("DELETE FROM User u WHERE u.id = :id")
     void deleteUserById(@Param("id") Long id);
 
+    boolean existsByEmail(String email);
+
 }
