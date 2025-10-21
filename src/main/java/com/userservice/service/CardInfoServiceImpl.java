@@ -4,7 +4,9 @@ import com.userservice.dto.CardInfoDTO;
 import com.userservice.entity.CardInfo;
 import com.userservice.entity.User;
 import com.userservice.exception.CardInfoAlreadyExistsException;
+import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
+
 import com.userservice.mapper.CardInfoMapper;
 import com.userservice.repository.CardInfoRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +26,18 @@ public class CardInfoServiceImpl implements CardInfoService {
     private final CardInfoMapper cardInfoMapper;
 
     @Override
-    public CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException {
+    public CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, CardInfoNotFoundException {
         if(cardInfoRepository.existsByNumberHolderExpirationDate(cardInfoDTO.getNumber(),
                 cardInfoDTO.getHolder(), cardInfoDTO.getExpirationDate())) {
             throw new CardInfoAlreadyExistsException("Card with these credentials already exists");
         }
         CardInfo cardInfo = cardInfoMapper.toCardInfo(cardInfoDTO);
-        return cardInfoMapper.toCardInfoDTO(cardInfoRepository.createCardInfo(cardInfo));
+        cardInfoRepository.createCardInfo(cardInfo);
+        cardInfoRepository.flush();
+        if(!cardInfoRepository.existsById(cardInfo.getId())){
+           throw new CardInfoNotFoundException("Card not found after creating");
+        }
+        return cardInfoMapper.toCardInfoDTO(cardInfo);
     }
 
     @Override
@@ -60,15 +67,25 @@ public class CardInfoServiceImpl implements CardInfoService {
             throw new CardInfoNotFoundException("Card with id: " + id + " not found for updating");
         }
         CardInfo cardInfo = cardInfoMapper.toCardInfo(cardInfoDTO);
-        return cardInfoMapper.toCardInfoDTO(cardInfoRepository.updateCardInfoById(id, cardInfo));
+        cardInfoRepository.updateCardInfoById(id, cardInfo);
+        cardInfoRepository.flush();
+        if(!cardInfoRepository.existsById(cardInfo.getId())){
+            throw new CardInfoNotFoundException("Card not found after updating");
+        }
+        return cardInfoMapper.toCardInfoDTO(cardInfoRepository.getCardInfoById(id));
     }
 
     @Override
     @Transactional
-    public void deleteCardInfo(Long id) throws CardInfoNotFoundException {
+    public void deleteCardInfo(Long id) throws CardInfoFoundAfterDeletingException, CardInfoNotFoundException {
         if(!cardInfoRepository.existsById(id)){
             throw new CardInfoNotFoundException("Card with id: " + id + " not found for deleting");
         }
         cardInfoRepository.deleteCardInfoById(id);
+        cardInfoRepository.flush();
+
+        if(cardInfoRepository.existsById(id)){
+            throw new CardInfoFoundAfterDeletingException("Card with id: " + id + " found after deleting");
+        }
     }
 }

@@ -1,10 +1,7 @@
 package com.userservice.handler;
 
 import com.userservice.dto.UserServiceErrorResponse;
-import com.userservice.exception.CardInfoAlreadyExistsException;
-import com.userservice.exception.CardInfoNotFoundException;
-import com.userservice.exception.UserAlreadyExistsException;
-import com.userservice.exception.UserNotFoundException;
+import com.userservice.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -43,6 +40,21 @@ public class UserServiceExceptionHandler {
         UserServiceErrorResponse response = new UserServiceErrorResponse(message);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
+
+    @ExceptionHandler({UserFoundAfterDeletingException.class})
+    public ResponseEntity<UserServiceErrorResponse> handleUserFoundAfterDeleting(UserFoundAfterDeletingException ex) {
+        String message = String.format("User found: %s %s", LocalDateTime.now(), ex.getMessage());
+        UserServiceErrorResponse response = new UserServiceErrorResponse(message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler({CardInfoFoundAfterDeletingException.class})
+    public ResponseEntity<UserServiceErrorResponse> handleCardInfoFoundAfterDeleting(CardInfoFoundAfterDeletingException ex) {
+        String message = String.format("Card found: %s %s", LocalDateTime.now(), ex.getMessage());
+        UserServiceErrorResponse response = new UserServiceErrorResponse(message);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<UserServiceErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {

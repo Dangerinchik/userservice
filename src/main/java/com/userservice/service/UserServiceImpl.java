@@ -4,6 +4,7 @@ import com.userservice.dto.UserDTO;
 import com.userservice.entity.User;
 import com.userservice.exception.CardInfoNotFoundException;
 import com.userservice.exception.UserAlreadyExistsException;
+import com.userservice.exception.UserFoundAfterDeletingException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.mapper.UserMapper;
 import com.userservice.repository.UserRepository;
@@ -24,12 +25,17 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDTO createUser(UserDTO dto) throws UserAlreadyExistsException {
+    public UserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException {
         if(userRepository.existsByEmail(dto.getEmail())){
             throw new UserAlreadyExistsException("User with email: " + " already exists");
         }
         User u = userMapper.toUser(dto);
-        return userMapper.toUserDTO(userRepository.createUser(u).get());
+        userRepository.createUser(u);
+        userRepository.flush();
+        if(!userRepository.existsByEmail(u.getEmail())){
+            throw new UserNotFoundException("User not found after creating");
+        }
+        return userMapper.toUserDTO(u);
     }
 
     @Override
@@ -76,15 +82,25 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("User with id: " + id + " not found for updating");
         }
         User u = userMapper.toUser(dto);
-        return userMapper.toUserDTO( userRepository.updateUserById(id, u));
+        userRepository.updateUserById(id, u);
+        userRepository.flush();
+        if(!userRepository.existsByEmail(u.getEmail())){
+            throw new UserNotFoundException("User not found after updating");
+        }
+        return userMapper.toUserDTO(u);
     }
 
     @Override
     @Transactional
-    public void deleteUser(Long id) throws UserNotFoundException {
+    public void deleteUser(Long id) throws UserNotFoundException, UserFoundAfterDeletingException {
         if(!userRepository.existsById(id)){
             throw new UserNotFoundException("User with id: " + id + " not found for deleting");
         }
         userRepository.deleteUserById(id);
+        userRepository.flush();
+
+        if(userRepository.existsById(id)){
+            throw new UserFoundAfterDeletingException("User with id: " + id + " found after deleting");
+        }
     }
 }
