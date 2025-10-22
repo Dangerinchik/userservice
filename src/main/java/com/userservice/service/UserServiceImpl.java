@@ -10,6 +10,11 @@ import com.userservice.mapper.UserMapper;
 import com.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,11 +28,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final CacheManager cacheManager;
 
     @Override
     public UserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException {
         if(userRepository.existsByEmail(dto.getEmail())){
-            throw new UserAlreadyExistsException("User with email: " + " already exists");
+            throw new UserAlreadyExistsException("User with email: " + dto.getEmail() + " already exists");
         }
         User u = userMapper.toUser(dto);
         userRepository.createUser(u);
@@ -35,10 +41,17 @@ public class UserServiceImpl implements UserService {
         if(!userRepository.existsByEmail(u.getEmail())){
             throw new UserNotFoundException("User not found after creating");
         }
-        return userMapper.toUserDTO(u);
+
+        UserDTO result = userMapper.toUserDTO(u);
+
+        Cache cache = cacheManager.getCache("users");
+        cache.putIfAbsent(u.getId(), result);
+
+        return result;
     }
 
     @Override
+    @Cacheable(value = "users", key = "#id")
     public UserDTO getUserById(Long id) throws UserNotFoundException {
         Optional<User> u = userRepository.getUserById(id);
 
@@ -67,7 +80,10 @@ public class UserServiceImpl implements UserService {
 
         Optional<User> u = userRepository.getUserByEmail(email);
         if(u.isPresent()) {
-            return userMapper.toUserDTO(u.get());
+            UserDTO result = userMapper.toUserDTO(u.get());
+            Cache cache = cacheManager.getCache("users");
+            cache.putIfAbsent(u.get().getId(), result);
+            return result;
         }
         else{
             throw new UserNotFoundException("User with email: " + email + " not found");
@@ -77,6 +93,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CachePut(value = "users", key = "#id")
     public UserDTO updateUser(Long id, UserDTO dto) throws UserNotFoundException {
         if(!userRepository.existsById(id)){
             throw new UserNotFoundException("User with id: " + id + " not found for updating");
@@ -84,14 +101,14 @@ public class UserServiceImpl implements UserService {
         User u = userMapper.toUser(dto);
         userRepository.updateUserById(id, u);
         userRepository.flush();
-        if(!userRepository.existsByEmail(u.getEmail())){
-            throw new UserNotFoundException("User not found after updating");
-        }
-        return userMapper.toUserDTO(u);
+        User updated = userRepository.getUserById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found after updating"));
+        return userMapper.toUserDTO(updated);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", key = "#id")
     public void deleteUser(Long id) throws UserNotFoundException, UserFoundAfterDeletingException {
         if(!userRepository.existsById(id)){
             throw new UserNotFoundException("User with id: " + id + " not found for deleting");
