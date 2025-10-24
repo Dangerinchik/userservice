@@ -16,6 +16,7 @@ public class CardInfoDTO {
 
     @NotBlank
     @Size(max = 50)
+    @Pattern(regexp = "^[A-Z\\s']*$")
     private String holder;
 
     @NotBlank

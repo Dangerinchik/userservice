@@ -3,6 +3,7 @@ package com.userservice.controller;
 import com.userservice.dto.UserDTO;
 import com.userservice.exception.CardInfoNotFoundException;
 import com.userservice.exception.UserAlreadyExistsException;
+import com.userservice.exception.UserFoundAfterDeletingException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.service.UserService;
 import jakarta.validation.Valid;
@@ -29,7 +30,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{email}")
+    @GetMapping("/email/{email}")
     public ResponseEntity<UserDTO> getUserByEmail(@PathVariable("email") String email) throws UserNotFoundException {
         UserDTO user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
@@ -42,7 +43,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO dto) throws UserAlreadyExistsException {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException {
         UserDTO response = userService.createUser(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -54,7 +55,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/delete")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) throws UserNotFoundException {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) throws UserNotFoundException, UserFoundAfterDeletingException {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
 
