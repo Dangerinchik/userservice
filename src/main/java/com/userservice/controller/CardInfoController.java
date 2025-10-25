@@ -2,6 +2,10 @@ package com.userservice.controller;
 
 
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.exception.CardInfoAlreadyExistsException;
+import com.userservice.exception.CardInfoFoundAfterDeletingException;
+import com.userservice.exception.CardInfoNotFoundException;
+import com.userservice.exception.UserNotFoundException;
 import com.userservice.service.CardInfoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,30 +23,30 @@ public class CardInfoController {
     private final CardInfoService cardInfoService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardInfoDTO> createCardInfo(@PathVariable Long id) {
+    public ResponseEntity<CardInfoDTO> getCardInfo(@PathVariable Long id) throws CardInfoNotFoundException {
         return ResponseEntity.ok(cardInfoService.getCardInfo(id));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<CardInfoDTO>> getAllCardsInfo(){
+    public ResponseEntity<Page<CardInfoDTO>> getAllCardsInfo() throws CardInfoNotFoundException {
         Page<CardInfoDTO> response = cardInfoService.getAllCardsInfo(Pageable.ofSize(10));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<CardInfoDTO> createCardInfo(@Valid @RequestBody CardInfoDTO cardInfoDTO) {
+    public ResponseEntity<CardInfoDTO> createCardInfo(@Valid @RequestBody CardInfoDTO cardInfoDTO) throws UserNotFoundException, CardInfoAlreadyExistsException, CardInfoNotFoundException {
         CardInfoDTO response = cardInfoService.createCardInfo(cardInfoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}/update")
-    public ResponseEntity<CardInfoDTO> updateCardInfo(@PathVariable Long id, @Valid @RequestBody CardInfoDTO cardInfoDTO) {
+    public ResponseEntity<CardInfoDTO> updateCardInfo(@PathVariable Long id, @Valid @RequestBody CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException {
         CardInfoDTO response = cardInfoService.updateCardInfoById(id, cardInfoDTO);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}/delete")
-    public ResponseEntity<Void> deleteCardInfo(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCardInfo(@PathVariable Long id) throws CardInfoNotFoundException, CardInfoFoundAfterDeletingException {
         cardInfoService.deleteCardInfo(id);
         return ResponseEntity.noContent().build();
     }
