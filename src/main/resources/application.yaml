@@ -7,8 +7,8 @@ spring:
       port: 6379
       password: ${REDIS_PASSWORD}
   datasource:
-    url: jdbc:postgresql://localhost:5432/userservice_db
-    username: postgres
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
