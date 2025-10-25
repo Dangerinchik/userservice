@@ -1,0 +1,63 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog">
+    <changeSet id="create-users-table" author="Danila">
+        <createTable tableName="users">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="surname" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="birth_date" type="date"/>
+            <column name="email" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-users-indexes" author="Danila">
+        <createIndex tableName="users" indexName="idx_users_email">
+            <column name="email"/>
+        </createIndex>
+        <createIndex tableName="users" indexName="idx_users_surname_name">
+            <column name="surname"/>
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-card_info-table" author="Danila">
+        <createTable tableName="card_info">
+            <column name="id" type="serial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"
+                             foreignKeyName="fk_card_info_users"
+                             referencedTableName="users" referencedColumnNames="id"/>
+            </column>
+            <column name="number" type="varchar(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="holder" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expiration_date" type="varchar(7)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-card_info-indexes" author="Danila">
+        <createIndex tableName="card_info" indexName="idx_card_info_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="card_info" indexName="idx_card_info_number_holder_expiration_date">
+            <column name="number"/>
+            <column name="holder"/>
+            <column name="expiration_date"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
