@@ -1,6 +1,11 @@
 spring:
   application:
     name: userservice
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
   datasource:
     url: jdbc:postgresql://localhost:5432/userservice_db
     username: postgres
@@ -11,3 +16,4 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+
