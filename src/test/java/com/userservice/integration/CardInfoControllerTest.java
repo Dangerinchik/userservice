@@ -142,8 +142,8 @@ public class CardInfoControllerTest {
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/card/all")
-                        .param("page", "0")
-                        .param("size", "10"))
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))

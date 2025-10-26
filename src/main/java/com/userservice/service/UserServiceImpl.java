@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
         userRepository.createUser(u);
 
         cacheUser(u);
-        
+
         UserDTO result = userMapper.toUserDTO(u);
 
 //        Cache cache = cacheManager.getCache("users");

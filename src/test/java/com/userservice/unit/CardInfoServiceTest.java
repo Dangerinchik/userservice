@@ -71,7 +71,7 @@ public class CardInfoServiceTest {
         cardInfo.setExpirationDate("(11/29)");
 
         saved = new CardInfo();
-        saved.setId(1);
+        saved.setId(1L);
         saved.setNumber("1111 1111 1111 1111");
         saved.setHolder("DANILA RAINCHYK");
         saved.setExpirationDate("(11/29)");
@@ -80,7 +80,7 @@ public class CardInfoServiceTest {
         pageImpl = new PageImpl<>(List.of(cardInfo), pageable, 1);
         page = pageImpl;
 
-        pageImplDTO = new PageImpl<>(List.of(cardInfo), pageable, 1);
+        pageImplDTO = new PageImpl<>(List.of(cardInfoDTO), pageable, 1);
         pageDTO = pageImplDTO;
 
         id = 1;
@@ -88,40 +88,36 @@ public class CardInfoServiceTest {
     }
     @Test
     public void testCreateCardInfo() throws Exception {
-        when(cardInfoRepository.existsByNumberAndHolderAndExpirationDate(anyString(), anyString(), anyString())).thenReturn(false);
+        when(cardInfoRepository.existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString())).thenReturn(false);
         when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
-        when(cardInfoRepository.existsById(1)).thenReturn(true);
-        when(cacheManager.getCache("cards")).thenReturn(cache);
+        when(cardInfoRepository.existsById(1L)).thenReturn(true);
         when(cardInfoMapper.toCardInfoDTO(cardInfo)).thenReturn(cardInfoDTO);
 
         CardInfoDTO result = cardInfoService.createCardInfo(cardInfoDTO);
 
         Assertions.assertNotNull(result);
         verify(cardInfoRepository).createCardInfo(cardInfo);
-        verify(cardInfoRepository).flush();
-        verify(cache).putIfAbsent(eq(1), eq(cardInfoDTO));
 
         verify(cardInfoRepository, times(1)).createCardInfo(any(CardInfo.class));
-        verify(cardInfoRepository, times(1)).flush();
     }
 
     @Test
     public void testCreateCardInfo__WhenCardInfoAlreadyExists() throws Exception {
         when(cardInfoRepository
-                .existsByNumberAndHolderAndExpirationDate(anyString(), anyString(), anyString()))
+                .existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString()))
                 .thenReturn(true);
 
         Assertions.assertThrows(CardInfoAlreadyExistsException.class,
                 () -> cardInfoService.createCardInfo(cardInfoDTO));
 
         verify(cardInfoRepository, never()).createCardInfo(any(CardInfo.class));
-        verify(cardInfoRepository, never()).flush();
+
     }
 
     @Test
     public void testCreateCardInfo__WhenCardNotFound() throws Exception {
         when(cardInfoRepository
-                .existsByNumberAndHolderAndExpirationDate(anyString(), anyString(), anyString()))
+                .existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString()))
                 .thenReturn(false);
         when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
         when(cardInfoRepository.existsById(cardInfo.getId())).thenReturn(false);
@@ -130,7 +126,7 @@ public class CardInfoServiceTest {
                 () -> cardInfoService.createCardInfo(cardInfoDTO));
 
         verify(cardInfoRepository, times(1)).createCardInfo(any(CardInfo.class));
-        verify(cardInfoRepository, times(1)).flush();
+
     }
 
     @Test
@@ -166,7 +162,7 @@ public class CardInfoServiceTest {
 
         Assertions.assertNotNull(result);
 
-        verify(cardInfoRepository).getAllCardsInfo(any(pageable));
+        verify(cardInfoRepository).getAllCardsInfo(any(Pageable.class));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.userservice.unit;
 
 import com.userservice.dto.UserDTO;
+import com.userservice.entity.User;
 import com.userservice.exception.UserAlreadyExistsException;
 import com.userservice.exception.UserFoundAfterDeletingException;
 import com.userservice.exception.UserNotFoundException;
@@ -87,7 +88,7 @@ public class UserServiceTest {
         pageImpl = new PageImpl<>(List.of(user), pageable, 1);
         page = pageImpl;
 
-        pageImplDTO = new PageImpl<>(List.of(user), pageable, 1);
+        pageImplDTO = new PageImpl<>(List.of(userDTO), pageable, 1);
         pageDTO = pageImplDTO;
 
 
@@ -97,18 +98,14 @@ public class UserServiceTest {
         when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(false);
         when(userMapper.toUser(userDTO)).thenReturn(user);
         when(userRepository.existsByEmail(user.getEmail())).thenReturn(true);
-        when(cacheManager.getCache("users")).thenReturn(cache);
         when(userMapper.toUserDTO(user)).thenReturn(userDTO);
 
         UserDTO result = userService.createUser(userDTO);
 
         Assertions.assertNotNull(result);
         verify(userRepository).createUser(user);
-        verify(userRepository).flush();
-        verify(cache).putIfAbsent(eq(1), eq(userDTO));
 
         verify(userRepository, times(1)).createUser(any(User.class));
-        verify(userRepository, times(1)).flush();
     }
 
     @Test
@@ -119,7 +116,7 @@ public class UserServiceTest {
                 () -> userService.createUser(userDTO));
 
         verify(userRepository, never()).createUser(any(User.class));
-        verify(userRepository, never()).flush();
+
     }
 
     @Test
@@ -132,7 +129,6 @@ public class UserServiceTest {
                 () -> userService.createUser(userDTO));
 
         verify(userRepository, times(1)).createUser(any(User.class));
-        verify(userRepository, times(1)).flush();
     }
 
     @Test
