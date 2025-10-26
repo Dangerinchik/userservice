@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,9 @@ public class CardInfoController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<CardInfoDTO>> getAllCardsInfo() throws CardInfoNotFoundException {
-        Page<CardInfoDTO> response = cardInfoService.getAllCardsInfo(Pageable.ofSize(10));
+    public ResponseEntity<Page<CardInfoDTO>> getAllCardsInfo(@RequestParam("offset") Integer offset,
+                                                             @RequestParam("limit") Integer limit) throws CardInfoNotFoundException {
+        Page<CardInfoDTO> response = cardInfoService.getAllCardsInfo(PageRequest.of(offset, limit));
         return ResponseEntity.ok(response);
     }
 
