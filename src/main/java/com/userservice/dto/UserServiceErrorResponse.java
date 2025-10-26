@@ -5,7 +5,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Data
-@AllArgsConstructor
 public class UserServiceErrorResponse {
     private String message;
+
+    public UserServiceErrorResponse(String message) {
+        this.message = message;
+    }
 }

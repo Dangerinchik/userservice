@@ -21,9 +21,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class UserController {
     private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/all")
     public ResponseEntity<Page<UserDTO>> getAllUsers(@RequestParam("offset") Integer offset, @RequestParam("limit") Integer limit) throws CardInfoNotFoundException {

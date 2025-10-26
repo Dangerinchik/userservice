@@ -96,9 +96,9 @@ public class CardInfoServiceTest {
         CardInfoDTO result = cardInfoService.createCardInfo(cardInfoDTO);
 
         Assertions.assertNotNull(result);
-        verify(cardInfoRepository).createCardInfo(cardInfo);
+        verify(cardInfoRepository).save(cardInfo);
 
-        verify(cardInfoRepository, times(1)).createCardInfo(any(CardInfo.class));
+        verify(cardInfoRepository, times(1)).save(any(CardInfo.class));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class CardInfoServiceTest {
         Assertions.assertThrows(CardInfoAlreadyExistsException.class,
                 () -> cardInfoService.createCardInfo(cardInfoDTO));
 
-        verify(cardInfoRepository, never()).createCardInfo(any(CardInfo.class));
+        verify(cardInfoRepository, never()).save(any(CardInfo.class));
 
     }
 
@@ -125,7 +125,7 @@ public class CardInfoServiceTest {
         Assertions.assertThrows(CardInfoNotFoundException.class,
                 () -> cardInfoService.createCardInfo(cardInfoDTO));
 
-        verify(cardInfoRepository, times(1)).createCardInfo(any(CardInfo.class));
+        verify(cardInfoRepository, times(1)).save(any(CardInfo.class));
 
     }
 

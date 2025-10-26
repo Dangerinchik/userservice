@@ -24,12 +24,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class CardInfoServiceImpl implements CardInfoService {
 
     private final CardInfoRepository cardInfoRepository;
     private final CardInfoMapper cardInfoMapper;
-    private final CacheManager cacheManager;
+
+    @Autowired
+    public CardInfoServiceImpl(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper, CacheManager cacheManager) {
+        this.cardInfoRepository = cardInfoRepository;
+        this.cardInfoMapper = cardInfoMapper;
+
+    }
 
     @Override
     public CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, CardInfoNotFoundException {
@@ -39,7 +44,7 @@ public class CardInfoServiceImpl implements CardInfoService {
         }
         CardInfo cardInfo = cardInfoMapper.toCardInfo(cardInfoDTO);
 
-        cardInfoRepository.createCardInfo(cardInfo);
+        cardInfoRepository.save(cardInfo);
 
         cacheCardInfo(cardInfo);
 

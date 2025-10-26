@@ -103,9 +103,9 @@ public class UserServiceTest {
         UserDTO result = userService.createUser(userDTO);
 
         Assertions.assertNotNull(result);
-        verify(userRepository).createUser(user);
+        verify(userRepository).save(user);
 
-        verify(userRepository, times(1)).createUser(any(User.class));
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class UserServiceTest {
         Assertions.assertThrows(UserAlreadyExistsException.class,
                 () -> userService.createUser(userDTO));
 
-        verify(userRepository, never()).createUser(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
 
     }
 
@@ -128,7 +128,7 @@ public class UserServiceTest {
         Assertions.assertThrows(UserNotFoundException.class,
                 () -> userService.createUser(userDTO));
 
-        verify(userRepository, times(1)).createUser(any(User.class));
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test

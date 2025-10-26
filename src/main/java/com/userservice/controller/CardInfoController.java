@@ -8,6 +8,7 @@ import com.userservice.exception.CardInfoNotFoundException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.service.CardInfoService;
 import jakarta.validation.Valid;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,9 +20,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/card")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class CardInfoController {
     private final CardInfoService cardInfoService;
+
+    @Autowired
+    public CardInfoController(CardInfoService cardInfoService) {
+        this.cardInfoService = cardInfoService;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<CardInfoDTO> getCardInfo(@PathVariable Long id) throws CardInfoNotFoundException {

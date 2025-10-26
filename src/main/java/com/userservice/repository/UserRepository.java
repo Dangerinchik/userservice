@@ -16,7 +16,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    void createUser(User user);
+//    void createUser(User user);
 
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> getUserById(@Param("id") Long id);

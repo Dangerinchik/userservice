@@ -23,12 +23,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @__(@Autowired))
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CacheManager cacheManager;
+
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, CacheManager cacheManager) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.cacheManager = cacheManager;
+    }
 
     @Override
     public UserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException {
@@ -36,7 +41,7 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User with email: " + dto.getEmail() + " already exists");
         }
         User u = userMapper.toUser(dto);
-        userRepository.createUser(u);
+        userRepository.save(u);
 
         cacheUser(u);
 
