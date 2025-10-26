@@ -16,17 +16,13 @@ test-job:
 
 analyse-job:
   stage: analyse
-  image:
-    name: sonarsource/sonar-scanner-cli:4.8
-    entrypoint: [ "" ]
-    variables:
-      GIT_STRATEGY: clone
-      GIT_DEPTH: 0
-    rules:
-      - if: $CI_PIPELINE_SOURCE != "schedule"
-    needs: [ build ]
-    script:
-      - sonar-scanner
+  image: maven:3.9.9-eclipse-temurin-17
+  script:
+    - ./mvnw sonar:sonar
+      -Dsonar.projectKey=userservice
+      -Dsonar.projectName=userservice
+      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.login=${SONARQUBE_TOKEN}
 
 build-image-job:
   stage: build-image
