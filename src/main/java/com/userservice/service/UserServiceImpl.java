@@ -37,17 +37,20 @@ public class UserServiceImpl implements UserService {
         }
         User u = userMapper.toUser(dto);
         userRepository.createUser(u);
-        userRepository.flush();
-        if(!userRepository.existsByEmail(u.getEmail())){
-            throw new UserNotFoundException("User not found after creating");
-        }
 
+        cacheUser(u);
+        
         UserDTO result = userMapper.toUserDTO(u);
 
-        Cache cache = cacheManager.getCache("users");
-        cache.putIfAbsent(u.getId(), result);
+//        Cache cache = cacheManager.getCache("users");
+//        cache.putIfAbsent(u.getId(), result);
 
         return result;
+    }
+
+    @CachePut(value = "cards", key = "#user.id")
+    public User cacheUser(User user){
+        return user;
     }
 
     @Override

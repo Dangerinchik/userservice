@@ -10,8 +10,8 @@ import com.userservice.exception.CardInfoNotFoundException;
 import com.userservice.mapper.CardInfoMapper;
 import com.userservice.repository.CardInfoRepository;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.annotations.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -38,16 +38,19 @@ public class CardInfoServiceImpl implements CardInfoService {
             throw new CardInfoAlreadyExistsException("Card with these credentials already exists");
         }
         CardInfo cardInfo = cardInfoMapper.toCardInfo(cardInfoDTO);
-        cardInfoRepository.createCardInfo(cardInfo);
-        cardInfoRepository.flush();
-        if(!cardInfoRepository.existsById(cardInfo.getId())){
-           throw new CardInfoNotFoundException("Card not found after creating");
-        }
 
-        Cache cache = cacheManager.getCache("cards");
-        CardInfoDTO result = cardInfoMapper.toCardInfoDTO(cardInfo);
-        cache.putIfAbsent(cardInfo.getId(), result);
-        return result;
+        cardInfoRepository.createCardInfo(cardInfo);
+
+        cacheCardInfo(cardInfo);
+
+//        Cache cache = cacheManager.getCache("cards");
+        //        cache.putIfAbsent(cardInfo.getId(), result);
+        return cardInfoMapper.toCardInfoDTO(cardInfo);
+    }
+
+    @CachePut(value = "cards", key = "#cardInfo.id")
+    public CardInfo cacheCardInfo(CardInfo cardInfo) {
+        return cardInfo;
     }
 
     @Override
