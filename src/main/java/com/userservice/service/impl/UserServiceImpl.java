@@ -1,4 +1,4 @@
-package com.userservice.service;
+package com.userservice.service.impl;
 
 import com.userservice.dto.UserDTO;
 import com.userservice.entity.User;
@@ -8,8 +8,7 @@ import com.userservice.exception.UserFoundAfterDeletingException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.mapper.UserMapper;
 import com.userservice.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.userservice.service.UserService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;

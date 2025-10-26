@@ -5,7 +5,7 @@ import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
 import com.userservice.mapper.CardInfoMapper;
-import com.userservice.service.CardInfoServiceImpl;
+import com.userservice.service.impl.CardInfoServiceImpl;
 import com.userservice.entity.CardInfo;
 
 import org.junit.jupiter.api.Assertions;

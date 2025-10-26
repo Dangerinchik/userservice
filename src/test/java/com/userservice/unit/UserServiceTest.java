@@ -6,7 +6,7 @@ import com.userservice.exception.UserAlreadyExistsException;
 import com.userservice.exception.UserFoundAfterDeletingException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.mapper.UserMapper;
-import com.userservice.service.UserServiceImpl;
+import com.userservice.service.impl.UserServiceImpl;
 import com.userservice.repository.UserRepository;
 
 import org.junit.jupiter.api.Assertions;

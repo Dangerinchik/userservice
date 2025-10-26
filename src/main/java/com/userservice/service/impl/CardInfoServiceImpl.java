@@ -1,16 +1,14 @@
-package com.userservice.service;
+package com.userservice.service.impl;
 
 import com.userservice.dto.CardInfoDTO;
 import com.userservice.entity.CardInfo;
-import com.userservice.entity.User;
 import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
 
 import com.userservice.mapper.CardInfoMapper;
 import com.userservice.repository.CardInfoRepository;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.Cache;
+import com.userservice.service.CardInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
