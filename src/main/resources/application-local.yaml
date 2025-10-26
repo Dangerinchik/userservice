@@ -1,4 +1,7 @@
 spring:
+  config:
+    activate:
+      on-profile: local
   application:
     name: userservice
   data:
@@ -16,4 +19,3 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-

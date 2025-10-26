@@ -17,10 +17,12 @@ services:
       - DB_URL=${DB_URL}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
       - DB_HOST=db
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - SPRING_PROFILES_ACTIVE=dev
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
@@ -36,11 +38,11 @@ services:
   db:
     image: postgres:latest
     restart: always
-    user: ${DB_USERNAME}
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_DB=${DB_NAME}
     expose:
       - 5432
