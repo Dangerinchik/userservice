@@ -1,0 +1,24 @@
+stages:
+  - build
+  - test
+  - analyse
+  - deploy
+
+build-job:
+  stage: build
+  script:
+    - docker build -t userservice-server .
+
+test-job:
+  stage: test
+  script:
+    - docker run --rm userservice-server
+
+analyse-job:
+  stage: analyse
+  script:
+
+deploy-job:
+  stage: deploy
+  script:
+    - docker compose up -d
