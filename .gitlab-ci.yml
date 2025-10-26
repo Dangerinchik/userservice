@@ -2,7 +2,7 @@ stages:
   - build
   - test
   - analyse
-  - deploy
+  - build-image
 
 build-job:
   stage: build
@@ -12,13 +12,23 @@ build-job:
 test-job:
   stage: test
   script:
-    - docker run --rm userservice-server
+    - ./mvnw test
 
 analyse-job:
   stage: analyse
-  script:
+  image:
+    name: sonarsource/sonar-scanner-cli:4.8
+    entrypoint: [ "" ]
+    variables:
+      GIT_STRATEGY: clone
+      GIT_DEPTH: 0
+    rules:
+      - if: $CI_PIPELINE_SOURCE != "schedule"
+    needs: [ build ]
+    script:
+      - sonar-scanner
 
-deploy-job:
-  stage: deploy
+build-image-job:
+  stage: build-image
   script:
     - docker compose up -d
