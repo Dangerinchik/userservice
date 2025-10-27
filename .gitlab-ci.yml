@@ -2,21 +2,14 @@ stages:
   - build
   - test
   - analyse
-  - build-image
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
 
 cache:
   paths:
     - .m2/repository/
     - target/
-
-services:
-  - name: docker:20.10.16-dind
-    command: ["--tls=false"]
 
 build-job:
   stage: build
@@ -57,19 +50,17 @@ analyse-job:
       -Dsonar.login=${SONARQUBE_TOKEN}
       -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
-build-image-job:
-  stage: build-image
-  image: docker:20.10.16
-  services:
-    - name: docker:20.10.16-dind
-      command: ["--tls=false"]
+package-job:
+  stage: analyse
+  image: maven:3.9.9-eclipse-temurin-17
   before_script:
-    - apk add --no-cache docker-compose
+    - chmod +x ./mvnw
   script:
-    - echo "Building Docker image..."
-    - docker build -t userservice-server:latest .
-    - echo "Docker image built successfully"
-  dependencies: []
+    - ./mvnw clean package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 week
   only:
     - main
     - tags
