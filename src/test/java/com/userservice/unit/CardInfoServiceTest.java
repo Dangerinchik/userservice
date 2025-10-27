@@ -90,7 +90,7 @@ public class CardInfoServiceTest {
     public void testCreateCardInfo() throws Exception {
         when(cardInfoRepository.existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString())).thenReturn(false);
         when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
-        when(cardInfoRepository.existsById(1L)).thenReturn(true);
+//        when(cardInfoRepository.existsById(1L)).thenReturn(true);
         when(cardInfoMapper.toCardInfoDTO(cardInfo)).thenReturn(cardInfoDTO);
 
         CardInfoDTO result = cardInfoService.createCardInfo(cardInfoDTO);

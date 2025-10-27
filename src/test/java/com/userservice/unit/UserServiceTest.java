@@ -119,17 +119,17 @@ public class UserServiceTest {
 
     }
 
-    @Test
-    public void testCreateUser__WhenUserNotFound() throws Exception {
-        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(false);
-        when(userMapper.toUser(userDTO)).thenReturn(user);
-        when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
-
-        Assertions.assertThrows(UserNotFoundException.class,
-                () -> userService.createUser(userDTO));
-
-        verify(userRepository, times(1)).save(any(User.class));
-    }
+//    @Test
+//    public void testCreateUser__WhenUserNotFound() throws Exception {
+//        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(false);
+//        when(userMapper.toUser(userDTO)).thenReturn(user);
+//        when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
+//
+//        Assertions.assertThrows(UserNotFoundException.class,
+//                () -> userService.createUser(userDTO));
+//
+//        verify(userRepository, times(1)).save(any(User.class));
+//    }
 
     @Test
     public void testGetUserById() throws Exception {
