@@ -30,11 +30,15 @@ test-job:
   stage: test
   image: maven:3.9.9-eclipse-temurin-17
   services:
-    - name: docker:24.0.7-dind
+    - name: docker:dind
       command: ["--tls=false", "--host=tcp://0.0.0.0:2375"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   before_script:
     - chmod +x ./mvnw
-    - apk add --no-cache docker
+    - apt-get update && apt-get install -y docker.io
+    - docker --version
     - docker info
   script:
     - ./mvnw test -Dtestcontainers.reuse.enable=true
