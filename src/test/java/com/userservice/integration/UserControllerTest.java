@@ -29,7 +29,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers(disabledWithoutDocker = true)
-@ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
 public class UserControllerTest {

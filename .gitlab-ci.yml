@@ -5,6 +5,9 @@ stages:
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  TESTCONTAINERS_RYUK_DISABLED: "true"
 
 cache:
   paths:
@@ -26,16 +29,23 @@ build-job:
 test-job:
   stage: test
   image: maven:3.9.9-eclipse-temurin-17
+  services:
+    - name: docker:24.0.7-dind
+      command: ["--tls=false", "--host=tcp://0.0.0.0:2375"]
   before_script:
     - chmod +x ./mvnw
+    - apk add --no-cache docker
+    - docker info
   script:
-    - ./mvnw test
+    - ./mvnw test -Dtestcontainers.reuse.enable=true
   artifacts:
     paths:
       - target/surefire-reports/
       - target/site/jacoco/
     reports:
       junit: target/surefire-reports/*.xml
+  dependencies:
+    - build-job
 
 analyse-job:
   stage: analyse
@@ -49,6 +59,8 @@ analyse-job:
       -Dsonar.host.url=${SONARQUBE_URL}
       -Dsonar.login=${SONARQUBE_TOKEN}
       -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+  dependencies:
+    - test-job
 
 package-job:
   stage: analyse
@@ -64,3 +76,5 @@ package-job:
   only:
     - main
     - tags
+  dependencies:
+    - test-job
