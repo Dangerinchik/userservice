@@ -28,17 +28,16 @@ build-job:
 
 test-job:
   stage: test
-  image: maven:3.9.9-eclipse-temurin-17
+  image: docker:24.0.7
   services:
-    - name: docker:dind
-      command: ["--tls=false", "--host=tcp://0.0.0.0:2375"]
+    - docker:24.0.7-dind
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
+    TESTCONTAINERS_RYUK_DISABLED: "true"
   before_script:
+    - apk add --no-cache maven openjdk17
     - chmod +x ./mvnw
-    - apt-get update && apt-get install -y docker.io
-    - docker --version
     - docker info
   script:
     - ./mvnw test -Dtestcontainers.reuse.enable=true
