@@ -126,18 +126,11 @@ jobs:
           SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         run: |
           chmod +x ./mvnw
-#          ./mvnw sonar:sonar \
-#            -Dsonar.projectKey=Dangerinchik_userservice \
-#            -Dsonar.projectName=dangerinchik \
-#            -Dsonar.host.url=$SONARQUBE_URL \
-#            -Dsonar.login=$SONARQUBE_TOKEN \
-#            -Dsonar.organization=dangerinchik \
-#            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
           ./mvnw clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=Dangerinchik_userservice \
+            -Dsonar.host.url=$SONARQUBE_URL \
             -Dsonar.token=$SONARQUBE_TOKEN \
-            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.organization=dangerinchik \
-            -Dsonar.projectKey=Dangerinchik-userservice
 
   package:
     runs-on: ubuntu-latest
