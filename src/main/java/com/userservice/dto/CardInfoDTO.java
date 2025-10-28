@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-@Data
-@AllArgsConstructor
+//
+@AllAr@DatagsConstructor
 @NoArgsConstructor
 public class CardInfoDTO {
 
