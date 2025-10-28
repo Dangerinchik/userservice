@@ -72,11 +72,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserDTO> getAllUsers(Pageable pageable) throws CardInfoNotFoundException {
+    public Page<UserDTO> getAllUsers(Pageable pageable) throws UserNotFoundException {
 
         Page<User> users = userRepository.getAllUsers(pageable);
         if(!users.hasContent()) {
-            throw new CardInfoNotFoundException("There are not any users");
+            throw new UserNotFoundException("There are not any users");
         }
         return userMapper.toUserDTOPage(users);
 

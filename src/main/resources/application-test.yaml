@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: userservice-test
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    username: test
+    password: test
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+        format_sql: true
+  liquibase:
+    enabled: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+  cache:
+    type: none
+
+logging:
+  level:
+    com.userservice: DEBUG
+    org.springframework.test.context: DEBUG
+    org.testcontainers: DEBUG

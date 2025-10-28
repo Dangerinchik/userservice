@@ -15,7 +15,7 @@ public interface UserService {
 
     UserDTO getUserById(Long id) throws UserNotFoundException;
 
-    Page<UserDTO> getAllUsers(Pageable pageable) throws CardInfoNotFoundException;
+    Page<UserDTO> getAllUsers(Pageable pageable) throws UserNotFoundException;
 
     UserDTO getUserByEmail(String email) throws UserNotFoundException;
 

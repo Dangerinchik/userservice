@@ -95,9 +95,8 @@ public class UserServiceTest {
     }
     @Test
     public void testCreateUser() throws Exception {
-        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(false);
+        when(userRepository.existsByEmail(userDTO.getEmail())).thenReturn(false).thenReturn(true);
         when(userMapper.toUser(userDTO)).thenReturn(user);
-        when(userRepository.existsByEmail(user.getEmail())).thenReturn(true);
         when(userMapper.toUserDTO(user)).thenReturn(userDTO);
 
         UserDTO result = userService.createUser(userDTO);
@@ -230,7 +229,7 @@ public class UserServiceTest {
     @Test
     public void testUpdateUserById__WhenUserNotFoundAfterUpdating() throws Exception {
 
-        when(userRepository.existsById(id)).thenReturn(false);
+        when(userRepository.existsById(id)).thenReturn(true);
         when(userMapper.toUser(userDTO)).thenReturn(user);
         when(userRepository.getUserById(id)).thenReturn(Optional.empty());
         Assertions.assertThrows(UserNotFoundException.class,
