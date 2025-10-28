@@ -5,6 +5,8 @@ stages:
 
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
   TESTCONTAINERS_RYUK_DISABLED: "true"
 
 cache:
@@ -14,6 +16,7 @@ cache:
 
 build-job:
   stage: build
+  image: maven:3.9.9-eclipse-temurin-17
   before_script:
     - chmod +x ./mvnw
   script:
@@ -25,9 +28,18 @@ build-job:
 
 test-job:
   stage: test
+  image: maven:3.9.9-eclipse-temurin-17
+  services:
+    - name: docker:24.0.7-dind
+      command: ["--tls=false", "--host=tcp://0.0.0.0:2375"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    TESTCONTAINERS_RYUK_DISABLED: "true"
   before_script:
     - chmod +x ./mvnw
-    - docker --version
+    - apk add --no-cache docker
+    - sleep 10
     - docker info
   script:
     - ./mvnw test -Dtestcontainers.reuse.enable=true
@@ -42,6 +54,7 @@ test-job:
 
 analyse-job:
   stage: analyse
+  image: maven:3.9.9-eclipse-temurin-17
   before_script:
     - chmod +x ./mvnw
   script:
@@ -56,6 +69,7 @@ analyse-job:
 
 package-job:
   stage: analyse
+  image: maven:3.9.9-eclipse-temurin-17
   before_script:
     - chmod +x ./mvnw
   script:
