@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<UserDTO>> getAllUsers(@RequestParam("offset") Integer offset, @RequestParam("limit") Integer limit) throws CardInfoNotFoundException {
+    public ResponseEntity<Page<UserDTO>> getAllUsers(@RequestParam("offset") Integer offset, @RequestParam("limit") Integer limit) throws UserNotFoundException {
         Page<UserDTO> users = userService.getAllUsers(PageRequest.of(offset, limit));
         return ResponseEntity.ok(users);
     }
