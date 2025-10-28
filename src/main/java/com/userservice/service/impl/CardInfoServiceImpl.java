@@ -36,7 +36,7 @@ public class CardInfoServiceImpl implements CardInfoService {
 
     @Override
     public CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, CardInfoNotFoundException {
-        if(cardInfoRepository.existsCardInfoByNumberAndHolderAndAndExpirationDate(cardInfoDTO.getNumber(),
+        if(cardInfoRepository.existsCardInfoByNumberAndHolderAndExpirationDate(cardInfoDTO.getNumber(),
                 cardInfoDTO.getHolder(), cardInfoDTO.getExpirationDate())) {
             throw new CardInfoAlreadyExistsException("Card with these credentials already exists");
         }
