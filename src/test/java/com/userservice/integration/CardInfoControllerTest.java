@@ -29,7 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers(disabledWithoutDocker = true)
-@ActiveProfiles("test")
+//@ActiveProfiles("test")
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CardInfoControllerTest {
@@ -73,7 +73,7 @@ public class CardInfoControllerTest {
 
     @Test
     public void testCreateCardInfo() throws Exception {
-        mockMvc.perform(post("/card/createCardInfo")
+        mockMvc.perform(post("/card/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cardInfoDTO)))
                 .andDo(print())
@@ -167,7 +167,7 @@ public class CardInfoControllerTest {
                         .content(objectMapper.writeValueAsString(cardInfoDTO)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("card/1/delete"))
+        mockMvc.perform(delete("/card/1/delete"))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/card/1"))
@@ -178,7 +178,7 @@ public class CardInfoControllerTest {
 
     @Test
     public void testDeleteCardInfo__WhenCardInfoDoesNotExists() throws Exception {
-        mockMvc.perform(delete("card/1/delete"))
+        mockMvc.perform(delete("/card/1/delete"))
                 .andExpect(status().isNotFound());
     }
 

@@ -189,7 +189,7 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("user/1/delete"))
+        mockMvc.perform(delete("/user/1/delete"))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/user/1"))
@@ -200,7 +200,7 @@ public class UserControllerTest {
 
     @Test
     public void testDeleteUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(delete("user/1/delete"))
+        mockMvc.perform(delete("/user/1/delete"))
                 .andExpect(status().isNotFound());
     }
 
