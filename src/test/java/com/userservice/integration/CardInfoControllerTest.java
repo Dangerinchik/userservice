@@ -111,12 +111,16 @@ public class CardInfoControllerTest {
 
         CardInfoDTO created = objectMapper.readValue(response, CardInfoDTO.class);
 
-        var result = mockMvc.perform(get("/card/1"))
+        var result = mockMvc.perform(get("/card/{id}", getFirstCardIdFromRepository()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.holder").value("DANILA RAINCHYK"))
                 .andExpect(jsonPath("$.number").value("1111 1111 1111 1111"))
                 .andExpect(jsonPath("$.expirationDate").value("(11/29)"));
+    }
+
+    private Long getFirstCardIdFromRepository() {
+        return cardInfoRepository.findAll().get(0).getId();
     }
 
     @Test
@@ -167,7 +171,7 @@ public class CardInfoControllerTest {
                         .content(objectMapper.writeValueAsString(cardInfoDTO)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/card/1/delete"))
+        mockMvc.perform(delete("/card/{id}/delete", getFirstCardIdFromRepository()))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/card/1"))
@@ -178,7 +182,7 @@ public class CardInfoControllerTest {
 
     @Test
     public void testDeleteCardInfo__WhenCardInfoDoesNotExists() throws Exception {
-        mockMvc.perform(delete("/card/1/delete"))
+        mockMvc.perform(delete("/card/{id}/delete", getFirstCardIdFromRepository()))
                 .andExpect(status().isNotFound());
     }
 
@@ -194,7 +198,7 @@ public class CardInfoControllerTest {
         toUpdate.setHolder("IVAN IVANOV");
         toUpdate.setExpirationDate("(12/28)");
 
-        mockMvc.perform(put("/card/1/update")
+        mockMvc.perform(put("/card/{id}/update", getFirstCardIdFromRepository())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(toUpdate)))
         .andDo(print())

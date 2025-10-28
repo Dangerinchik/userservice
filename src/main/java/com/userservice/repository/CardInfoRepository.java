@@ -35,5 +35,5 @@ public interface CardInfoRepository extends JpaRepository<CardInfo, Long> {
     @Query(value = "DELETE FROM card_info WHERE id = :id", nativeQuery = true)
     void deleteCardInfoById(@Param("id")Long id);
 
-    boolean existsCardInfoByNumberAndHolderAndAndExpirationDate(String number, String holder, String expirationDate);
+    boolean existsCardInfoByNumberAndHolderAndExpirationDate(String number, String holder, String expirationDate);
 }

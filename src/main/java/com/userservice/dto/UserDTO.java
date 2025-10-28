@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 @Data
 @RequiredArgsConstructor
+@NoArgsConstructor
 public class UserDTO {
 
     @NotBlank

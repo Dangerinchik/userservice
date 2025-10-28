@@ -9,6 +9,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
+@NoArgsConstructor
 public class CardInfoDTO {
 
     @NotBlank
