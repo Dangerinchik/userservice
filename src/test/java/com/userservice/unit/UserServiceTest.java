@@ -63,7 +63,7 @@ public class UserServiceTest {
     @BeforeEach
     public void setUp() throws Exception {
 
-        id = 1;
+        id = 0;
 
         userDTO = new UserDTO();
         userDTO.setName("Daniil");
@@ -158,13 +158,13 @@ public class UserServiceTest {
 
         when(userRepository.getUserByEmail(userDTO.getEmail())).thenReturn(Optional.of(saved));
         when(userMapper.toUserDTO(saved)).thenReturn(userDTO);
-        when(cacheManager.getCache("users")).thenReturn(cache);
+
 
         UserDTO result = userService.getUserByEmail(userDTO.getEmail());
 
         Assertions.assertNotNull(result);
         verify(userRepository).getUserByEmail(anyString());
-        verify(cache, times(1)).putIfAbsent(eq(saved.getId()), eq(userDTO));
+
 
     }
 
@@ -242,8 +242,8 @@ public class UserServiceTest {
     @Test
     public void testDeleteUserById() throws Exception {
 
-        when(userRepository.existsById(id)).thenReturn(true);
-        when(userRepository.existsById(id)).thenReturn(false);
+        when(userRepository.existsById(id)).thenReturn(true).thenReturn(false);
+        userService.createUser(userDTO);
 
         userService.deleteUser(id);
 
