@@ -9,6 +9,7 @@ import com.userservice.exception.UserNotFoundException;
 import com.userservice.mapper.UserMapper;
 import com.userservice.repository.UserRepository;
 import com.userservice.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -26,12 +27,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final CacheManager cacheManager;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, CacheManager cacheManager) {
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -87,10 +87,9 @@ public class UserServiceImpl implements UserService {
 
         Optional<User> u = userRepository.getUserByEmail(email);
         if(u.isPresent()) {
-            UserDTO result = userMapper.toUserDTO(u.get());
-            Cache cache = cacheManager.getCache("users");
-            cache.putIfAbsent(u.get().getId(), result);
-            return result;
+            cacheUser(u.get());
+
+            return userMapper.toUserDTO(u.get());
         }
         else{
             throw new UserNotFoundException("User with email: " + email + " not found");

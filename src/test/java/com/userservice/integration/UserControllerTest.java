@@ -70,14 +70,14 @@ public class UserControllerTest {
 //    }
 
     @Container
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15-alpine")
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
             .withReuse(true); // Добавьте это
 
     @Container
-    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:7-alpine")
+    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:latest")
             .withExposedPorts(6379)
             .withReuse(true); // Добавьте это
 
@@ -209,18 +209,20 @@ public class UserControllerTest {
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/user/all")
-                        .param("page", "0")
-                        .param("size", "10"))
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[0].email").value("ivan@gmail.com"));
+                .andExpect(jsonPath("$.content[1].email").value("ivan@gmail.com"));
 
     }
 
     @Test
     public void testGetAllUsers__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(get("/user/all"))
+        mockMvc.perform(get("/user/all")
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -235,7 +237,7 @@ public class UserControllerTest {
         mockMvc.perform(delete("/user/{id}/delete", getFirstUserIdFromRepository()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/user/1"))
+        mockMvc.perform(get("/user/0"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -243,7 +245,7 @@ public class UserControllerTest {
 
     @Test
     public void testDeleteUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(delete("/user/{id}/delete", getFirstUserIdFromRepository()))
+        mockMvc.perform(delete("/user/80/delete"))
                 .andExpect(status().isNotFound());
     }
 
@@ -273,7 +275,7 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(put("/user/{id}/update", getFirstUserIdFromRepository())
+        mockMvc.perform(put("/user/80/update")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andDo(print())

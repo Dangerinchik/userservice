@@ -28,7 +28,7 @@ public class CardInfoServiceImpl implements CardInfoService {
     private final CardInfoMapper cardInfoMapper;
 
     @Autowired
-    public CardInfoServiceImpl(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper, CacheManager cacheManager) {
+    public CardInfoServiceImpl(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper) {
         this.cardInfoRepository = cardInfoRepository;
         this.cardInfoMapper = cardInfoMapper;
 

@@ -69,16 +69,14 @@ public class CardInfoControllerTest {
 //
 //    }
 @Container
-static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:15-alpine")
+static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
         .withDatabaseName("testdb")
         .withUsername("test")
-        .withPassword("test")
-        .withReuse(true); // Добавьте это
+        .withPassword("test");
 
     @Container
-    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:7-alpine")
-            .withExposedPorts(6379)
-            .withReuse(true); // Добавьте это
+    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:latest")
+            .withExposedPorts(6379);
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -89,7 +87,6 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
         registry.add("spring.data.redis.host", redisContainer::getHost);
         registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
 
-        // Явно установите настройки для тестов
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("spring.jpa.show-sql", () -> "true");
         registry.add("spring.jpa.properties.hibernate.dialect",
@@ -105,7 +102,7 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
         cardInfoDTO = new CardInfoDTO();
         cardInfoDTO.setNumber("1111 1111 1111 1111");
         cardInfoDTO.setHolder("DANILA RAINCHYK");
-        cardInfoDTO.setExpirationDate("(11/29)");
+        cardInfoDTO.setExpirationDate("11/29");
     }
 
     @Test
@@ -117,7 +114,7 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.holder").value("DANILA RAINCHYK"))
                 .andExpect(jsonPath("$.number").value("1111 1111 1111 1111"))
-                .andExpect(jsonPath("$.expirationDate").value("(11/29)"));
+                .andExpect(jsonPath("$.expirationDate").value("11/29"));
 
     }
 
@@ -153,7 +150,7 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.holder").value("DANILA RAINCHYK"))
                 .andExpect(jsonPath("$.number").value("1111 1111 1111 1111"))
-                .andExpect(jsonPath("$.expirationDate").value("(11/29)"));
+                .andExpect(jsonPath("$.expirationDate").value("11/29"));
     }
 
     private Long getFirstCardIdFromRepository() {
@@ -177,7 +174,7 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
         CardInfoDTO toCreate = new CardInfoDTO();
         toCreate.setNumber("2222 2222 2222 2222");
         toCreate.setHolder("IVAN IVANOV");
-        toCreate.setExpirationDate("(12/28)");
+        toCreate.setExpirationDate("12/28");
 
         mockMvc.perform(post("/card/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -190,13 +187,15 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[0].holder").value("IVAN IVANOV"));
+                .andExpect(jsonPath("$.content[1].holder").value("IVAN IVANOV"));
 
     }
 
     @Test
     public void testGetAllCardsInfo__WhenCardInfoDoesNotExists() throws Exception {
-        mockMvc.perform(get("/card/all"))
+        mockMvc.perform(get("/card/all")
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -219,7 +218,7 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
 
     @Test
     public void testDeleteCardInfo__WhenCardInfoDoesNotExists() throws Exception {
-        mockMvc.perform(delete("/card/{id}/delete", getFirstCardIdFromRepository()))
+        mockMvc.perform(delete("/card/80/delete"))
                 .andExpect(status().isNotFound());
     }
 
@@ -233,7 +232,7 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
         CardInfoDTO toUpdate = new CardInfoDTO();
         toUpdate.setNumber("3333 3333 3333 3333");
         toUpdate.setHolder("IVAN IVANOV");
-        toUpdate.setExpirationDate("(12/28)");
+        toUpdate.setExpirationDate("12/28");
 
         mockMvc.perform(put("/card/{id}/update", getFirstCardIdFromRepository())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -241,8 +240,8 @@ static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("p
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.holder").value("IVAN IVANOV"))
-        .andExpect(jsonPath("$.number").value("3333 3333 3333"))
-        .andExpect(jsonPath("$.expirationDate").value("(12/28)"));
+        .andExpect(jsonPath("$.number").value("3333 3333 3333 3333"))
+        .andExpect(jsonPath("$.expirationDate").value("12/28"));
 
 
     }

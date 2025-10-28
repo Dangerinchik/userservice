@@ -11,8 +11,6 @@ spring:
         format_sql: true
   liquibase:
     enabled: false
-  cache:
-    type: none
 
 logging:
   level:

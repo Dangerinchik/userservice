@@ -8,7 +8,18 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceErrorResponse {
     private String message;
 
+    public UserServiceErrorResponse() {
+    }
+
     public UserServiceErrorResponse(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
         this.message = message;
     }
 }
