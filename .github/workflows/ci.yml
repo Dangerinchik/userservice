@@ -131,6 +131,7 @@ jobs:
             -Dsonar.projectName=dangerinchik \
             -Dsonar.host.url=$SONARQUBE_URL \
             -Dsonar.login=$SONARQUBE_TOKEN \
+            -Dsonar.organization=dangerinchik \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
 
   package:
