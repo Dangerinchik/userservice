@@ -137,12 +137,16 @@ public class UserControllerTest {
 
         UserDTO created = objectMapper.readValue(response, UserDTO.class);
 
-        var result = mockMvc.perform(get("/user/1"))
+        var result = mockMvc.perform(get("/user/{id}", getFirstUserIdFromRepository()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("danik@gmail.com"))
                 .andExpect(jsonPath("$.name").value("Danila"))
                 .andExpect(jsonPath("$.surname").value("Rainchik"));
+    }
+
+    private Long getFirstUserIdFromRepository() {
+        return userRepository.findAll().get(0).getId();
     }
 
     @Test
@@ -216,7 +220,7 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/user/1/delete"))
+        mockMvc.perform(delete("/user/{id}/delete", getFirstUserIdFromRepository()))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/user/1"))
@@ -227,7 +231,7 @@ public class UserControllerTest {
 
     @Test
     public void testDeleteUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(delete("/user/1/delete"))
+        mockMvc.perform(delete("/user/{id}/delete", getFirstUserIdFromRepository()))
                 .andExpect(status().isNotFound());
     }
 
@@ -243,7 +247,7 @@ public class UserControllerTest {
         toUpdate.setName("Ivan");
         toUpdate.setSurname("Ivanov");
 
-        mockMvc.perform(put("/user/1/update")
+        mockMvc.perform(put("/user/{id}/update", getFirstUserIdFromRepository())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(toUpdate)))
                 .andDo(print())
@@ -257,7 +261,7 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(put("/user/1/update")
+        mockMvc.perform(put("/user/{id}/update", getFirstUserIdFromRepository())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andDo(print())
