@@ -2,7 +2,6 @@ package com.userservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.redis.core.RedisHash;
 
 @Data
 @Entity
