@@ -245,7 +245,6 @@ public class UserServiceTest {
         when(userRepository.existsById(id)).thenReturn(true);
         when(userRepository.existsById(id)).thenReturn(false);
 
-        userService.createUser(userDTO);
         userService.deleteUser(id);
 
         verify(userRepository, times(1)).deleteUserById(eq(id));
