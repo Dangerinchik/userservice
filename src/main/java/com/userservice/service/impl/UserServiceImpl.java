@@ -33,6 +33,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    @CachePut(value = "users", key = "#result.id")
     public ResponseUserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException {
         if(userRepository.existsByEmail(dto.getEmail())){
             throw new UserAlreadyExistsException("User with email: " + dto.getEmail() + " already exists");
