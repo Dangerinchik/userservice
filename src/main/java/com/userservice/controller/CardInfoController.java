@@ -2,18 +2,16 @@ package com.userservice.controller;
 
 
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.dto.ResponseCardInfoDTO;
 import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.service.CardInfoService;
 import jakarta.validation.Valid;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,26 +27,26 @@ public class CardInfoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardInfoDTO> getCardInfo(@PathVariable Long id) throws CardInfoNotFoundException {
+    public ResponseEntity<ResponseCardInfoDTO> getCardInfo(@PathVariable Long id) throws CardInfoNotFoundException {
         return ResponseEntity.ok(cardInfoService.getCardInfo(id));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<CardInfoDTO>> getAllCardsInfo(@RequestParam("offset") Integer offset,
-                                                             @RequestParam("limit") Integer limit) throws CardInfoNotFoundException {
-        Page<CardInfoDTO> response = cardInfoService.getAllCardsInfo(PageRequest.of(offset, limit));
+    public ResponseEntity<Page<ResponseCardInfoDTO>> getAllCardsInfo(@RequestParam("offset") Integer offset,
+                                                                     @RequestParam("limit") Integer limit) throws CardInfoNotFoundException {
+        Page<ResponseCardInfoDTO> response = cardInfoService.getAllCardsInfo(PageRequest.of(offset, limit));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<CardInfoDTO> createCardInfo(@Valid @RequestBody CardInfoDTO cardInfoDTO) throws UserNotFoundException, CardInfoAlreadyExistsException, CardInfoNotFoundException {
-        CardInfoDTO response = cardInfoService.createCardInfo(cardInfoDTO);
+    public ResponseEntity<ResponseCardInfoDTO> createCardInfo(@Valid @RequestBody CardInfoDTO cardInfoDTO) throws UserNotFoundException, CardInfoAlreadyExistsException, CardInfoNotFoundException {
+        ResponseCardInfoDTO response = cardInfoService.createCardInfo(cardInfoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}/update")
-    public ResponseEntity<CardInfoDTO> updateCardInfo(@PathVariable Long id, @Valid @RequestBody CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException {
-        CardInfoDTO response = cardInfoService.updateCardInfoById(id, cardInfoDTO);
+    public ResponseEntity<ResponseCardInfoDTO> updateCardInfo(@PathVariable Long id, @Valid @RequestBody CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException {
+        ResponseCardInfoDTO response = cardInfoService.updateCardInfoById(id, cardInfoDTO);
         return ResponseEntity.ok(response);
     }
 

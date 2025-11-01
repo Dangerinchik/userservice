@@ -1,5 +1,6 @@
 package com.userservice.mapper;
 
+import com.userservice.dto.ResponseUserDTO;
 import com.userservice.dto.UserDTO;
 import com.userservice.entity.User;
 import org.mapstruct.Mapper;
@@ -13,12 +14,12 @@ import java.util.List;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = CardInfoMapper.class)
 public interface UserMapper {
 
-    UserDTO toUserDTO(User user);
+    ResponseUserDTO toUserDTO(User user);
 
     User toUser(UserDTO userDTO);
 
-    default Page<UserDTO> toUserDTOPage(Page<User> users){
-        List<UserDTO> userList = users.stream().map(this::toUserDTO).toList();
+    default Page<ResponseUserDTO> toUserDTOPage(Page<User> users){
+        List<ResponseUserDTO> userList = users.stream().map(this::toUserDTO).toList();
         return new PageImpl<>(userList, users.getPageable(), users.getTotalElements());
     };
 }
