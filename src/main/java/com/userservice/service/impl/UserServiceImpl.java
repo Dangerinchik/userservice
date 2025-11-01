@@ -1,4 +1,4 @@
-package com.userservice.service;
+package com.userservice.service.impl;
 
 import com.userservice.dto.UserDTO;
 import com.userservice.entity.User;
@@ -8,8 +8,7 @@ import com.userservice.exception.UserFoundAfterDeletingException;
 import com.userservice.exception.UserNotFoundException;
 import com.userservice.mapper.UserMapper;
 import com.userservice.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.userservice.service.UserService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -23,12 +22,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @__(@Autowired))
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CacheManager cacheManager;
+
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, CacheManager cacheManager) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.cacheManager = cacheManager;
+    }
 
     @Override
     public UserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException {
@@ -36,18 +40,21 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException("User with email: " + dto.getEmail() + " already exists");
         }
         User u = userMapper.toUser(dto);
-        userRepository.createUser(u);
-        userRepository.flush();
-        if(!userRepository.existsByEmail(u.getEmail())){
-            throw new UserNotFoundException("User not found after creating");
-        }
+        userRepository.save(u);
+
+        cacheUser(u);
 
         UserDTO result = userMapper.toUserDTO(u);
 
-        Cache cache = cacheManager.getCache("users");
-        cache.putIfAbsent(u.getId(), result);
+//        Cache cache = cacheManager.getCache("users");
+//        cache.putIfAbsent(u.getId(), result);
 
         return result;
+    }
+
+    @CachePut(value = "cards", key = "#user.id")
+    public User cacheUser(User user){
+        return user;
     }
 
     @Override

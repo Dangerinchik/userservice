@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
@@ -20,13 +21,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/user")
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class UserController {
     private final UserService userService;
 
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @GetMapping("/all")
-    public ResponseEntity<Page<UserDTO>> getAllUsers() throws CardInfoNotFoundException {
-        Page<UserDTO> users = userService.getAllUsers(Pageable.ofSize(10));
+    public ResponseEntity<Page<UserDTO>> getAllUsers(@RequestParam("offset") Integer offset, @RequestParam("limit") Integer limit) throws CardInfoNotFoundException {
+        Page<UserDTO> users = userService.getAllUsers(PageRequest.of(offset, limit));
         return ResponseEntity.ok(users);
     }
 

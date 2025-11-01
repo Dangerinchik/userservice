@@ -2,6 +2,7 @@ package com.userservice.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.repository.CardInfoRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -141,8 +142,8 @@ public class CardInfoControllerTest {
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/card/all")
-                        .param("page", "0")
-                        .param("size", "10"))
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))

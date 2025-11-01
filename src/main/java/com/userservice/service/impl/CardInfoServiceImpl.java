@@ -1,17 +1,15 @@
-package com.userservice.service;
+package com.userservice.service.impl;
 
 import com.userservice.dto.CardInfoDTO;
 import com.userservice.entity.CardInfo;
-import com.userservice.entity.User;
 import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
 
 import com.userservice.mapper.CardInfoMapper;
 import com.userservice.repository.CardInfoRepository;
-import lombok.RequiredArgsConstructor;
+import com.userservice.service.CardInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -24,30 +22,38 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class CardInfoServiceImpl implements CardInfoService {
 
     private final CardInfoRepository cardInfoRepository;
     private final CardInfoMapper cardInfoMapper;
-    private final CacheManager cacheManager;
+
+    @Autowired
+    public CardInfoServiceImpl(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper, CacheManager cacheManager) {
+        this.cardInfoRepository = cardInfoRepository;
+        this.cardInfoMapper = cardInfoMapper;
+
+    }
 
     @Override
     public CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, CardInfoNotFoundException {
-        if(cardInfoRepository.existsByNumberAndHolderAndExpirationDate(cardInfoDTO.getNumber(),
+        if(cardInfoRepository.existsCardInfoByNumberAndHolderAndAndExpirationDate(cardInfoDTO.getNumber(),
                 cardInfoDTO.getHolder(), cardInfoDTO.getExpirationDate())) {
             throw new CardInfoAlreadyExistsException("Card with these credentials already exists");
         }
         CardInfo cardInfo = cardInfoMapper.toCardInfo(cardInfoDTO);
-        cardInfoRepository.createCardInfo(cardInfo);
-        cardInfoRepository.flush();
-        if(!cardInfoRepository.existsById(cardInfo.getId())){
-           throw new CardInfoNotFoundException("Card not found after creating");
-        }
 
-        Cache cache = cacheManager.getCache("cards");
-        CardInfoDTO result = cardInfoMapper.toCardInfoDTO(cardInfo);
-        cache.putIfAbsent(cardInfo.getId(), result);
-        return result;
+        cardInfoRepository.save(cardInfo);
+
+        cacheCardInfo(cardInfo);
+
+//        Cache cache = cacheManager.getCache("cards");
+        //        cache.putIfAbsent(cardInfo.getId(), result);
+        return cardInfoMapper.toCardInfoDTO(cardInfo);
+    }
+
+    @CachePut(value = "cards", key = "#cardInfo.id")
+    public CardInfo cacheCardInfo(CardInfo cardInfo) {
+        return cardInfo;
     }
 
     @Override

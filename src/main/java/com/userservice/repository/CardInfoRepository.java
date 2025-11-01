@@ -16,7 +16,7 @@ import java.util.Optional;
 @Repository
 public interface CardInfoRepository extends JpaRepository<CardInfo, Long> {
 
-    void createCardInfo(CardInfo cardInfo);
+//    void createCardInfo(CardInfo cardInfo);
 
     @Query(value = "SELECT * FROM card_info WHERE id = :id", nativeQuery = true)
     Optional<CardInfo> getCardInfoById(@Param("id") Long id);
