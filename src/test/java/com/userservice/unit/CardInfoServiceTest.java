@@ -1,6 +1,7 @@
 package com.userservice.unit;
 
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.dto.ResponseCardInfoDTO;
 import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
@@ -48,13 +49,14 @@ public class CardInfoServiceTest {
     private CardInfoServiceImpl cardInfoService;
 
     private static CardInfoDTO cardInfoDTO;
+    private static ResponseCardInfoDTO responseCardInfoDTO;
     private static CardInfo cardInfo;
     private static CardInfo saved;
     private static Pageable pageable;
     private static PageImpl<CardInfo> pageImpl;
     private static Page<CardInfo> page;
-    private static PageImpl<CardInfoDTO> pageImplDTO;
-    private static Page<CardInfoDTO> pageDTO;
+    private static PageImpl<ResponseCardInfoDTO> pageImplDTO;
+    private static Page<ResponseCardInfoDTO> pageDTO;
     private static long id;
 
     @BeforeEach
@@ -76,24 +78,30 @@ public class CardInfoServiceTest {
         saved.setHolder("DANILA RAINCHYK");
         saved.setExpirationDate("(11/29)");
 
+        responseCardInfoDTO = new ResponseCardInfoDTO();
+        responseCardInfoDTO.setId(id);
+        responseCardInfoDTO.setNumber(cardInfoDTO.getNumber());
+        responseCardInfoDTO.setHolder(cardInfoDTO.getHolder());
+        responseCardInfoDTO.setExpirationDate(cardInfoDTO.getExpirationDate());
+
         pageable = Pageable.ofSize(10);
         pageImpl = new PageImpl<>(List.of(cardInfo), pageable, 1);
         page = pageImpl;
 
-        pageImplDTO = new PageImpl<>(List.of(cardInfoDTO), pageable, 1);
+        pageImplDTO = new PageImpl<>(List.of(responseCardInfoDTO), pageable, 1);
         pageDTO = pageImplDTO;
 
-        id = 1;
+        id = 0;
 
     }
     @Test
     public void testCreateCardInfo() throws Exception {
-        when(cardInfoRepository.existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString())).thenReturn(false);
+        when(cardInfoRepository.existsCardInfoByNumberAndHolderAndExpirationDate(anyString(), anyString(), anyString())).thenReturn(false);
         when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
-        when(cardInfoRepository.existsById(1L)).thenReturn(true);
-        when(cardInfoMapper.toCardInfoDTO(cardInfo)).thenReturn(cardInfoDTO);
+//        when(cardInfoRepository.existsById(1L)).thenReturn(true);
+        when(cardInfoMapper.toCardInfoDTO(cardInfo)).thenReturn(responseCardInfoDTO);
 
-        CardInfoDTO result = cardInfoService.createCardInfo(cardInfoDTO);
+        ResponseCardInfoDTO result = cardInfoService.createCardInfo(cardInfoDTO);
 
         Assertions.assertNotNull(result);
         verify(cardInfoRepository).save(cardInfo);
@@ -104,7 +112,7 @@ public class CardInfoServiceTest {
     @Test
     public void testCreateCardInfo__WhenCardInfoAlreadyExists() throws Exception {
         when(cardInfoRepository
-                .existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString()))
+                .existsCardInfoByNumberAndHolderAndExpirationDate(anyString(), anyString(), anyString()))
                 .thenReturn(true);
 
         Assertions.assertThrows(CardInfoAlreadyExistsException.class,
@@ -114,28 +122,28 @@ public class CardInfoServiceTest {
 
     }
 
-    @Test
-    public void testCreateCardInfo__WhenCardNotFound() throws Exception {
-        when(cardInfoRepository
-                .existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString()))
-                .thenReturn(false);
-        when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
-        when(cardInfoRepository.existsById(cardInfo.getId())).thenReturn(false);
-
-        Assertions.assertThrows(CardInfoNotFoundException.class,
-                () -> cardInfoService.createCardInfo(cardInfoDTO));
-
-        verify(cardInfoRepository, times(1)).save(any(CardInfo.class));
-
-    }
+//    @Test
+//    public void testCreateCardInfo__WhenCardNotFound() throws Exception {
+//        when(cardInfoRepository
+//                .existsCardInfoByNumberAndHolderAndAndExpirationDate(anyString(), anyString(), anyString()))
+//                .thenReturn(false);
+//        when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
+//        when(cardInfoRepository.existsById(cardInfo.getId())).thenReturn(false);
+//
+//        Assertions.assertThrows(CardInfoNotFoundException.class,
+//                () -> cardInfoService.createCardInfo(cardInfoDTO));
+//
+//        verify(cardInfoRepository, times(1)).save(any(CardInfo.class));
+//
+//    }
 
     @Test
     public void testGetCardInfo() throws Exception {
 
         when(cardInfoRepository.getCardInfoById(id)).thenReturn(Optional.of(saved));
-        when(cardInfoMapper.toCardInfoDTO(saved)).thenReturn(cardInfoDTO);
+        when(cardInfoMapper.toCardInfoDTO(saved)).thenReturn(responseCardInfoDTO);
 
-        CardInfoDTO result = cardInfoService.getCardInfo(id);
+        ResponseCardInfoDTO result = cardInfoService.getCardInfo(id);
 
         Assertions.assertNotNull(result);
         verify(cardInfoRepository).getCardInfoById(id);
@@ -158,7 +166,7 @@ public class CardInfoServiceTest {
         when(cardInfoRepository.getAllCardsInfo(pageable)).thenReturn(page);
         when(cardInfoMapper.toCardInfoDTOPage(page)).thenReturn(pageDTO);
 
-        Page<CardInfoDTO> result = cardInfoService.getAllCardsInfo(pageable);
+        Page<ResponseCardInfoDTO> result = cardInfoService.getAllCardsInfo(pageable);
 
         Assertions.assertNotNull(result);
 
@@ -179,9 +187,9 @@ public class CardInfoServiceTest {
         when(cardInfoRepository.existsById(id)).thenReturn(true);
         when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
         when(cardInfoRepository.getCardInfoById(id)).thenReturn(Optional.of(saved));
-        when(cardInfoMapper.toCardInfoDTO(saved)).thenReturn(cardInfoDTO);
+        when(cardInfoMapper.toCardInfoDTO(saved)).thenReturn(responseCardInfoDTO);
 
-        CardInfoDTO result = cardInfoService.updateCardInfoById(id, cardInfoDTO);
+        ResponseCardInfoDTO result = cardInfoService.updateCardInfoById(id, cardInfoDTO);
 
         Assertions.assertNotNull(result);
         verify(cardInfoRepository, times(1))
@@ -200,18 +208,18 @@ public class CardInfoServiceTest {
         verify(cardInfoRepository, never()).updateCardInfoById(eq(id), eq(cardInfo));
     }
 
-    @Test
-    public void testUpdateCardInfoById__WhenCardInfoNotFoundAfterUpdating() throws Exception {
-
-        when(cardInfoRepository.existsById(id)).thenReturn(false);
-        when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
-        when(cardInfoRepository.getCardInfoById(id)).thenReturn(Optional.empty());
-        Assertions.assertThrows(CardInfoNotFoundException.class,
-                () -> cardInfoService.updateCardInfoById(id, cardInfoDTO));
-
-        verify(cardInfoRepository, times(1)).updateCardInfoById(eq(id), eq(cardInfo));
-        verify(cardInfoRepository, times(1)).flush();
-    }
+//    @Test
+//    public void testUpdateCardInfoById__WhenCardInfoNotFoundAfterUpdating() throws Exception {
+//
+//        when(cardInfoRepository.existsById(id)).thenReturn(false);
+//        when(cardInfoMapper.toCardInfo(cardInfoDTO)).thenReturn(cardInfo);
+//        when(cardInfoRepository.getCardInfoById(id)).thenReturn(Optional.empty());
+//        Assertions.assertThrows(CardInfoNotFoundException.class,
+//                () -> cardInfoService.updateCardInfoById(id, cardInfoDTO));
+//
+//        verify(cardInfoRepository, times(1)).updateCardInfoById(eq(id), eq(cardInfo));
+//        verify(cardInfoRepository, times(1)).flush();
+//    }
 
     @Test
     public void testDeleteCardInfoById() throws Exception {

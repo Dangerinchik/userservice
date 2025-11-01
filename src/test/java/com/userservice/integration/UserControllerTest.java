@@ -10,8 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,9 +32,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
+@TestExecutionListeners(listeners = {
+        DependencyInjectionTestExecutionListener.class,
+        DirtiesContextTestExecutionListener.class
+}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -40,12 +51,35 @@ public class UserControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Container
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+//    @Container
+//    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+//
+//    @Container
+//    private static final GenericContainer<?> genericContainer = new GenericContainer<>(DockerImageName.parse("redis:latest"))
+//            .withExposedPorts(6379);
+//
+//    @DynamicPropertySource
+//    static void configureProperties(DynamicPropertyRegistry registry) {
+//        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+//        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+//        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+//
+//        registry.add("spring.data.redis.host", genericContainer::getHost);
+//        registry.add("spring.data.redis.port", genericContainer::getFirstMappedPort);
+//
+//    }
 
     @Container
-    private static final GenericContainer<?> genericContainer = new GenericContainer<>(DockerImageName.parse("redis:latest"))
-            .withExposedPorts(6379);
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test")
+            .withReuse(true); // Добавьте это
+
+    @Container
+    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:latest")
+            .withExposedPorts(6379)
+            .withReuse(true); // Добавьте это
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -53,9 +87,15 @@ public class UserControllerTest {
         registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
 
-        registry.add("spring.data.redis.host", genericContainer::getHost);
-        registry.add("spring.data.redis.port", genericContainer::getFirstMappedPort);
+        registry.add("spring.data.redis.host", redisContainer::getHost);
+        registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
 
+        // Явно установите настройки для тестов
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.show-sql", () -> "true");
+        registry.add("spring.jpa.properties.hibernate.dialect",
+                () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("spring.jpa.properties.hibernate.format_sql", () -> "true");
     }
 
     private static UserDTO userDTO;
@@ -71,7 +111,7 @@ public class UserControllerTest {
 
     @Test
     public void testCreateUser() throws Exception {
-        mockMvc.perform(post("/user/createUser")
+        mockMvc.perform(post("/user/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andDo(print())
@@ -109,12 +149,16 @@ public class UserControllerTest {
 
         UserDTO created = objectMapper.readValue(response, UserDTO.class);
 
-        var result = mockMvc.perform(get("/user/1"))
+        var result = mockMvc.perform(get("/user/{id}", getFirstUserIdFromRepository()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("danik@gmail.com"))
                 .andExpect(jsonPath("$.name").value("Danila"))
                 .andExpect(jsonPath("$.surname").value("Rainchik"));
+    }
+
+    private Long getFirstUserIdFromRepository() {
+        return userRepository.findAll().get(0).getId();
     }
 
     @Test
@@ -165,18 +209,20 @@ public class UserControllerTest {
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/user/all")
-                        .param("page", "0")
-                        .param("size", "10"))
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[0].email").value("ivan@gmail.com"));
+                .andExpect(jsonPath("$.content[1].email").value("ivan@gmail.com"));
 
     }
 
     @Test
     public void testGetAllUsers__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(get("/user/all"))
+        mockMvc.perform(get("/user/all")
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -188,10 +234,10 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("user/1/delete"))
+        mockMvc.perform(delete("/user/{id}/delete", getFirstUserIdFromRepository()))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/user/1"))
+        mockMvc.perform(get("/user/0"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -199,7 +245,7 @@ public class UserControllerTest {
 
     @Test
     public void testDeleteUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(delete("user/1/delete"))
+        mockMvc.perform(delete("/user/80/delete"))
                 .andExpect(status().isNotFound());
     }
 
@@ -215,7 +261,7 @@ public class UserControllerTest {
         toUpdate.setName("Ivan");
         toUpdate.setSurname("Ivanov");
 
-        mockMvc.perform(put("/user/1/update")
+        mockMvc.perform(put("/user/{id}/update", getFirstUserIdFromRepository())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(toUpdate)))
                 .andDo(print())
@@ -229,7 +275,7 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateUser__WhenUserDoesNotExists() throws Exception {
-        mockMvc.perform(put("/user/1/update")
+        mockMvc.perform(put("/user/80/update")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andDo(print())

@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 @Configuration
 @EnableCaching
+@Profile("!test")
 public class RedisConfig {
     //время жизни кэша(в минутах)
     private static final Duration TTL_DEFAULT = Duration.ofMinutes(10);

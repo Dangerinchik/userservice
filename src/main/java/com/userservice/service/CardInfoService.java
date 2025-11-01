@@ -1,6 +1,7 @@
 package com.userservice.service;
 
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.dto.ResponseCardInfoDTO;
 import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
 import com.userservice.exception.CardInfoNotFoundException;
@@ -10,13 +11,13 @@ import org.springframework.data.domain.Pageable;
 
 public interface CardInfoService {
 
-    CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, UserNotFoundException, CardInfoNotFoundException;
+    ResponseCardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, UserNotFoundException, CardInfoNotFoundException;
 
-    CardInfoDTO getCardInfo(Long id) throws CardInfoNotFoundException;
+    ResponseCardInfoDTO getCardInfo(Long id) throws CardInfoNotFoundException;
 
-    Page<CardInfoDTO> getAllCardsInfo(Pageable pageable) throws CardInfoNotFoundException;
+    Page<ResponseCardInfoDTO> getAllCardsInfo(Pageable pageable) throws CardInfoNotFoundException;
 
-    CardInfoDTO updateCardInfoById(Long id, CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException;
+    ResponseCardInfoDTO updateCardInfoById(Long id, CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException;
 
     void deleteCardInfo(Long id) throws CardInfoNotFoundException, CardInfoFoundAfterDeletingException;
 

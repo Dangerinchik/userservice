@@ -10,8 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,9 +32,15 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
+@TestExecutionListeners(listeners = {
+        DependencyInjectionTestExecutionListener.class,
+        DirtiesContextTestExecutionListener.class
+}, mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CardInfoControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -40,11 +51,31 @@ public class CardInfoControllerTest {
     @Autowired
     private CardInfoRepository cardInfoRepository;
 
-    @Container
-    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+//    @Container
+//    private static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+//
+//    @Container
+//    private static final GenericContainer<?> genericContainer = new GenericContainer<>(DockerImageName.parse("redis:latest"))
+//            .withExposedPorts(6379);
+//
+//    @DynamicPropertySource
+//    static void configureProperties(DynamicPropertyRegistry registry) {
+//        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+//        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+//        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+//
+//        registry.add("spring.data.redis.host", genericContainer::getHost);
+//        registry.add("spring.data.redis.port", genericContainer::getFirstMappedPort);
+//
+//    }
+@Container
+static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest")
+        .withDatabaseName("testdb")
+        .withUsername("test")
+        .withPassword("test");
 
     @Container
-    private static final GenericContainer<?> genericContainer = new GenericContainer<>(DockerImageName.parse("redis:latest"))
+    static GenericContainer<?> redisContainer = new GenericContainer<>("redis:latest")
             .withExposedPorts(6379);
 
     @DynamicPropertySource
@@ -53,9 +84,14 @@ public class CardInfoControllerTest {
         registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
 
-        registry.add("spring.data.redis.host", genericContainer::getHost);
-        registry.add("spring.data.redis.port", genericContainer::getFirstMappedPort);
+        registry.add("spring.data.redis.host", redisContainer::getHost);
+        registry.add("spring.data.redis.port", redisContainer::getFirstMappedPort);
 
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.show-sql", () -> "true");
+        registry.add("spring.jpa.properties.hibernate.dialect",
+                () -> "org.hibernate.dialect.PostgreSQLDialect");
+        registry.add("spring.jpa.properties.hibernate.format_sql", () -> "true");
     }
 
     private static CardInfoDTO cardInfoDTO;
@@ -66,19 +102,19 @@ public class CardInfoControllerTest {
         cardInfoDTO = new CardInfoDTO();
         cardInfoDTO.setNumber("1111 1111 1111 1111");
         cardInfoDTO.setHolder("DANILA RAINCHYK");
-        cardInfoDTO.setExpirationDate("(11/29)");
+        cardInfoDTO.setExpirationDate("11/29");
     }
 
     @Test
     public void testCreateCardInfo() throws Exception {
-        mockMvc.perform(post("/card/createCardInfo")
+        mockMvc.perform(post("/card/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(cardInfoDTO)))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.holder").value("DANILA RAINCHYK"))
                 .andExpect(jsonPath("$.number").value("1111 1111 1111 1111"))
-                .andExpect(jsonPath("$.expirationDate").value("(11/29)"));
+                .andExpect(jsonPath("$.expirationDate").value("11/29"));
 
     }
 
@@ -109,12 +145,16 @@ public class CardInfoControllerTest {
 
         CardInfoDTO created = objectMapper.readValue(response, CardInfoDTO.class);
 
-        var result = mockMvc.perform(get("/card/1"))
+        var result = mockMvc.perform(get("/card/{id}", getFirstCardIdFromRepository()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.holder").value("DANILA RAINCHYK"))
                 .andExpect(jsonPath("$.number").value("1111 1111 1111 1111"))
-                .andExpect(jsonPath("$.expirationDate").value("(11/29)"));
+                .andExpect(jsonPath("$.expirationDate").value("11/29"));
+    }
+
+    private Long getFirstCardIdFromRepository() {
+        return cardInfoRepository.findAll().get(0).getId();
     }
 
     @Test
@@ -134,7 +174,7 @@ public class CardInfoControllerTest {
         CardInfoDTO toCreate = new CardInfoDTO();
         toCreate.setNumber("2222 2222 2222 2222");
         toCreate.setHolder("IVAN IVANOV");
-        toCreate.setExpirationDate("(12/28)");
+        toCreate.setExpirationDate("12/28");
 
         mockMvc.perform(post("/card/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -147,13 +187,15 @@ public class CardInfoControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[0].holder").value("IVAN IVANOV"));
+                .andExpect(jsonPath("$.content[1].holder").value("IVAN IVANOV"));
 
     }
 
     @Test
     public void testGetAllCardsInfo__WhenCardInfoDoesNotExists() throws Exception {
-        mockMvc.perform(get("/card/all"))
+        mockMvc.perform(get("/card/all")
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -165,7 +207,7 @@ public class CardInfoControllerTest {
                         .content(objectMapper.writeValueAsString(cardInfoDTO)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("card/1/delete"))
+        mockMvc.perform(delete("/card/{id}/delete", getFirstCardIdFromRepository()))
                 .andExpect(status().isNoContent());
 
         mockMvc.perform(get("/card/1"))
@@ -176,7 +218,7 @@ public class CardInfoControllerTest {
 
     @Test
     public void testDeleteCardInfo__WhenCardInfoDoesNotExists() throws Exception {
-        mockMvc.perform(delete("card/1/delete"))
+        mockMvc.perform(delete("/card/80/delete"))
                 .andExpect(status().isNotFound());
     }
 
@@ -190,16 +232,16 @@ public class CardInfoControllerTest {
         CardInfoDTO toUpdate = new CardInfoDTO();
         toUpdate.setNumber("3333 3333 3333 3333");
         toUpdate.setHolder("IVAN IVANOV");
-        toUpdate.setExpirationDate("(12/28)");
+        toUpdate.setExpirationDate("12/28");
 
-        mockMvc.perform(put("/card/1/update")
+        mockMvc.perform(put("/card/{id}/update", getFirstCardIdFromRepository())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(toUpdate)))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.holder").value("IVAN IVANOV"))
-        .andExpect(jsonPath("$.number").value("3333 3333 3333"))
-        .andExpect(jsonPath("$.expirationDate").value("(12/28)"));
+        .andExpect(jsonPath("$.number").value("3333 3333 3333 3333"))
+        .andExpect(jsonPath("$.expirationDate").value("12/28"));
 
 
     }

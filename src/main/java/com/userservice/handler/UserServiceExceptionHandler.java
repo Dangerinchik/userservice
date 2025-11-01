@@ -63,4 +63,13 @@ public class UserServiceExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    // Add a generic exception handler
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity<UserServiceErrorResponse> handleGenericException(Exception ex) {
+        UserServiceErrorResponse response = new UserServiceErrorResponse(
+                String.format("Internal server error: %s", ex.getMessage())
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
 }

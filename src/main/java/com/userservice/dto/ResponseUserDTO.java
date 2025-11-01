@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -14,7 +15,9 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+public class ResponseUserDTO {
+
+    private long id;
 
     @NotBlank
     @Size(max = 50)
@@ -33,6 +36,5 @@ public class UserDTO {
     private String email;
 
     private Set<CardInfoDTO> cards;
-
 
 }

@@ -1,6 +1,7 @@
 package com.userservice.mapper;
 
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.dto.ResponseCardInfoDTO;
 import com.userservice.entity.CardInfo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,13 +17,13 @@ import java.util.stream.Collectors;
 public interface CardInfoMapper {
 
 
-    CardInfoDTO toCardInfoDTO(CardInfo cardInfo);
+    ResponseCardInfoDTO toCardInfoDTO(CardInfo cardInfo);
 
 
     CardInfo toCardInfo(CardInfoDTO cardInfoDTO);
 
-    default Page<CardInfoDTO> toCardInfoDTOPage(Page<CardInfo> cardInfoPage){
-        List<CardInfoDTO> dtos = cardInfoPage.stream().map(this::toCardInfoDTO).toList();
+    default Page<ResponseCardInfoDTO> toCardInfoDTOPage(Page<CardInfo> cardInfoPage){
+        List<ResponseCardInfoDTO> dtos = cardInfoPage.stream().map(this::toCardInfoDTO).toList();
         return new PageImpl<>(dtos, cardInfoPage.getPageable(), cardInfoPage.getTotalElements());
     }
 

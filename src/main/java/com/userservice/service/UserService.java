@@ -1,5 +1,6 @@
 package com.userservice.service;
 
+import com.userservice.dto.ResponseUserDTO;
 import com.userservice.dto.UserDTO;
 import com.userservice.entity.User;
 import com.userservice.exception.CardInfoNotFoundException;
@@ -11,15 +12,15 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
-    UserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException;
+    ResponseUserDTO createUser(UserDTO dto) throws UserAlreadyExistsException, UserNotFoundException;
 
-    UserDTO getUserById(Long id) throws UserNotFoundException;
+    ResponseUserDTO getUserById(Long id) throws UserNotFoundException;
 
-    Page<UserDTO> getAllUsers(Pageable pageable) throws CardInfoNotFoundException;
+    Page<ResponseUserDTO> getAllUsers(Pageable pageable) throws UserNotFoundException;
 
-    UserDTO getUserByEmail(String email) throws UserNotFoundException;
+    ResponseUserDTO getUserByEmail(String email) throws UserNotFoundException;
 
-    UserDTO updateUser(Long id, UserDTO dto) throws UserNotFoundException;
+    ResponseUserDTO updateUser(Long id, UserDTO dto) throws UserNotFoundException;
 
     void deleteUser(Long id) throws UserNotFoundException, UserFoundAfterDeletingException;
 

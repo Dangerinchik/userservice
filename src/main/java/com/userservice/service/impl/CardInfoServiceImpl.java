@@ -1,6 +1,7 @@
 package com.userservice.service.impl;
 
 import com.userservice.dto.CardInfoDTO;
+import com.userservice.dto.ResponseCardInfoDTO;
 import com.userservice.entity.CardInfo;
 import com.userservice.exception.CardInfoAlreadyExistsException;
 import com.userservice.exception.CardInfoFoundAfterDeletingException;
@@ -10,7 +11,6 @@ import com.userservice.mapper.CardInfoMapper;
 import com.userservice.repository.CardInfoRepository;
 import com.userservice.service.CardInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,15 +28,17 @@ public class CardInfoServiceImpl implements CardInfoService {
     private final CardInfoMapper cardInfoMapper;
 
     @Autowired
-    public CardInfoServiceImpl(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper, CacheManager cacheManager) {
+    public CardInfoServiceImpl(CardInfoRepository cardInfoRepository, CardInfoMapper cardInfoMapper) {
         this.cardInfoRepository = cardInfoRepository;
         this.cardInfoMapper = cardInfoMapper;
 
     }
 
     @Override
-    public CardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, CardInfoNotFoundException {
-        if(cardInfoRepository.existsCardInfoByNumberAndHolderAndAndExpirationDate(cardInfoDTO.getNumber(),
+    @CachePut(value = "cards", key = "#result.id")
+    @Transactional
+    public ResponseCardInfoDTO createCardInfo(CardInfoDTO cardInfoDTO) throws CardInfoAlreadyExistsException, CardInfoNotFoundException {
+        if(cardInfoRepository.existsCardInfoByNumberAndHolderAndExpirationDate(cardInfoDTO.getNumber(),
                 cardInfoDTO.getHolder(), cardInfoDTO.getExpirationDate())) {
             throw new CardInfoAlreadyExistsException("Card with these credentials already exists");
         }
@@ -44,21 +46,12 @@ public class CardInfoServiceImpl implements CardInfoService {
 
         cardInfoRepository.save(cardInfo);
 
-        cacheCardInfo(cardInfo);
-
-//        Cache cache = cacheManager.getCache("cards");
-        //        cache.putIfAbsent(cardInfo.getId(), result);
         return cardInfoMapper.toCardInfoDTO(cardInfo);
-    }
-
-    @CachePut(value = "cards", key = "#cardInfo.id")
-    public CardInfo cacheCardInfo(CardInfo cardInfo) {
-        return cardInfo;
     }
 
     @Override
     @Cacheable(value = "cards", key = "#id")
-    public CardInfoDTO getCardInfo(Long id) throws CardInfoNotFoundException {
+    public ResponseCardInfoDTO getCardInfo(Long id) throws CardInfoNotFoundException {
         Optional<CardInfo> cardInfo = cardInfoRepository.getCardInfoById(id);
         if (cardInfo.isPresent()) {
             return cardInfoMapper.toCardInfoDTO(cardInfo.get());
@@ -69,7 +62,7 @@ public class CardInfoServiceImpl implements CardInfoService {
     }
 
     @Override
-    public Page<CardInfoDTO> getAllCardsInfo(Pageable pageable) throws CardInfoNotFoundException {
+    public Page<ResponseCardInfoDTO> getAllCardsInfo(Pageable pageable) throws CardInfoNotFoundException {
         Page<CardInfo> cardsInfo = cardInfoRepository.getAllCardsInfo(pageable);
         if(!cardsInfo.hasContent()) {
             throw new CardInfoNotFoundException("There are not any cards");
@@ -80,7 +73,7 @@ public class CardInfoServiceImpl implements CardInfoService {
     @Override
     @Transactional
     @CachePut(value = "cards", key = "#id")
-    public CardInfoDTO updateCardInfoById(Long id, CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException {
+    public ResponseCardInfoDTO updateCardInfoById(Long id, CardInfoDTO cardInfoDTO) throws CardInfoNotFoundException {
         if(!cardInfoRepository.existsById(id)){
             throw new CardInfoNotFoundException("Card with id: " + id + " not found for updating");
         }

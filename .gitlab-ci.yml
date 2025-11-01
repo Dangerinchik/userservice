@@ -1,0 +1,85 @@
+stages:
+  - build
+  - test
+  - analyse
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  TESTCONTAINERS_RYUK_DISABLED: "true"
+
+cache:
+  paths:
+    - .m2/repository/
+    - target/
+
+build-job:
+  stage: build
+  image: maven:3.9.9-eclipse-temurin-17
+  before_script:
+    - chmod +x ./mvnw
+  script:
+    - ./mvnw clean compile -DskipTests
+  artifacts:
+    paths:
+      - target/classes/
+    expire_in: 1 hour
+
+test-job:
+  stage: test
+  image: maven:3.9.9-eclipse-temurin-17
+  services:
+    - name: docker:24.0.7-dind
+      command: ["--tls=false", "--host=tcp://0.0.0.0:2375"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    TESTCONTAINERS_RYUK_DISABLED: "true"
+  before_script:
+    - chmod +x ./mvnw
+    - apk add --no-cache docker
+    - sleep 10
+    - docker info
+  script:
+    - ./mvnw test -Dtestcontainers.reuse.enable=true
+  artifacts:
+    paths:
+      - target/surefire-reports/
+      - target/site/jacoco/
+    reports:
+      junit: target/surefire-reports/*.xml
+  dependencies:
+    - build-job
+
+analyse-job:
+  stage: analyse
+  image: maven:3.9.9-eclipse-temurin-17
+  before_script:
+    - chmod +x ./mvnw
+  script:
+    - ./mvnw sonar:sonar
+      -Dsonar.projectKey=userservice
+      -Dsonar.projectName=userservice
+      -Dsonar.host.url=${SONARQUBE_URL}
+      -Dsonar.login=${SONARQUBE_TOKEN}
+      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+  dependencies:
+    - test-job
+
+package-job:
+  stage: analyse
+  image: maven:3.9.9-eclipse-temurin-17
+  before_script:
+    - chmod +x ./mvnw
+  script:
+    - ./mvnw clean package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 week
+  only:
+    - main
+    - tags
+  dependencies:
+    - test-job

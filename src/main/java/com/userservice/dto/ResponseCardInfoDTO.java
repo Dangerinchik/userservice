@@ -3,13 +3,16 @@ package com.userservice.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CardInfoDTO {
+@RequiredArgsConstructor
+public class ResponseCardInfoDTO {
 
+    private long id;
     @NotBlank
     @Size(min = 19, max=19)
     @Pattern(regexp = "\\d{4} \\d{4} \\d{4} \\d{4}")
@@ -24,5 +27,4 @@ public class CardInfoDTO {
     @Size(min = 5, max = 5)
     @Pattern(regexp = "((0[1-9]|1[0-2])/\\d{2})")
     private String expirationDate;
-
 }
